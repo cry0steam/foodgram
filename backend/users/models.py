@@ -1,5 +1,12 @@
 from django.contrib.auth.models import AbstractUser
-from django.db.models import CharField, EmailField
+from django.db import models
+from django.db.models import (
+    CASCADE,
+    CharField,
+    EmailField,
+    ForeignKey,
+    UniqueConstraint,
+)
 
 
 class CustomUser(AbstractUser):
@@ -38,3 +45,29 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.username
+
+
+class Subscription(models.Model):
+    author = ForeignKey(
+        CustomUser,
+        related_name='authors',
+        verbose_name='Автор',
+        on_delete=CASCADE,
+    )
+    subscriber = ForeignKey(
+        CustomUser,
+        related_name='subscribers',
+        verbose_name='Подписчики',
+        on_delete=CASCADE,
+    )
+
+    class Meta:
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
+        constraints = (
+            UniqueConstraint(
+                fields=('author', 'subscriber'),
+                name='unique_follow',
+            ),
+            # добавить проверку на подписку на самого себя
+        )
