@@ -1,33 +1,33 @@
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import RegexValidator
 from django.db import models
-from django.db.models import (
-    CASCADE,
-    CharField,
-    EmailField,
-    ForeignKey,
-    UniqueConstraint,
-)
 
 
 class CustomUser(AbstractUser):
-    username = CharField(
+    username = models.CharField(
         'Юзернейм',
         max_length=150,
         unique=True,
-        # validators=[RegexValidator(regex=r'^[\w.@+-]+$')],
+        validators=[RegexValidator(regex=r'^[\w.@+-]+$')],
     )
-    first_name = CharField(
+    first_name = models.CharField(
         'Имя',
         max_length=150,
     )
-    last_name = CharField(
+    last_name = models.CharField(
         'Фамилия',
         max_length=150,
     )
-    email = EmailField(
+    email = models.EmailField(
         'email',
         max_length=254,
         unique=True,
+    )
+    avatar = models.ImageField(
+        blank=True,
+        null=True,
+        upload_to='media/avatars/',
+        verbose_name='Аватар',
     )
 
     USERNAME_FIELD = 'email'
@@ -48,24 +48,24 @@ class CustomUser(AbstractUser):
 
 
 class Subscription(models.Model):
-    author = ForeignKey(
+    author = models.ForeignKey(
         CustomUser,
-        related_name='authors',
+        related_name='author',
         verbose_name='Автор',
-        on_delete=CASCADE,
+        on_delete=models.CASCADE,
     )
-    subscriber = ForeignKey(
+    subscriber = models.ForeignKey(
         CustomUser,
-        related_name='subscribers',
+        related_name='subscriber',
         verbose_name='Подписчики',
-        on_delete=CASCADE,
+        on_delete=models.CASCADE,
     )
 
     class Meta:
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
         constraints = (
-            UniqueConstraint(
+            models.UniqueConstraint(
                 fields=('author', 'subscriber'),
                 name='unique_follow',
             ),
