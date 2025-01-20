@@ -1,14 +1,17 @@
+from django.core.exceptions import ValidationError
 from django.db.models import Sum
 from django.http.response import HttpResponse
-from django.shortcuts import get_object_or_404
-
-# from django_filters.rest_framework import DjangoFilterBackend
+from django.shortcuts import get_object_or_404, redirect
+from django.views.decorators.http import require_GET
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.reverse import reverse
 from users.pagination import PageLimitPaginator
 
+from .filters import RecipeFilter
 from .models import (
     FavoriteRecipe,
     Ingredient,
@@ -17,10 +20,11 @@ from .models import (
     ShoppingCart,
     Tag,
 )
-from .permissions import AdminOrReadOnly, AuthorOrAdminOrReadOnly
+from .permissions import AuthorOrAdminOrReadOnly
 from .serializers import (
     CreateRecipeSerializer,
     FavoriteSerializer,
+    FullRecipeSerializer,
     IngredientSerializer,
     ShoppingCartSerializer,
     TagSerializer,
@@ -30,44 +34,64 @@ from .serializers import (
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    permission_classes = (AdminOrReadOnly,)
     pagination_class = None
-    # filter_backends = (IngredientFilter,)
     search_fields = ('^name',)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    permission_classes = (AdminOrReadOnly,)
     pagination_class = None
-    http_method_names = [
-        'get',
-    ]
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    queryset = Recipe.objects.prefetch_related(
-        'recipe_ingredients__ingredient',
+    queryset = Recipe.objects.select_related('author').prefetch_related(
+        'ingredients',
         'tags',
     )
-    serializer_class = CreateRecipeSerializer
     pagination_class = PageLimitPaginator
-    # filter_backends = (DjangoFilterBackend,)
-    # filterset_class = RecipeFilterSet
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = RecipeFilter
     permission_classes = [AuthorOrAdminOrReadOnly]
-    http_method_names = ['get', 'post', 'patch', 'delete']
 
-    @action(
-        detail=True,
-        methods=['GET'],
-        url_path='get-link',
-        permission_classes=[permissions.AllowAny],
-    )
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return FullRecipeSerializer
+        return CreateRecipeSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        recipe = serializer.save()
+
+        read_serializer = FullRecipeSerializer(
+            recipe, context=self.get_serializer_context()
+        )
+        return Response(read_serializer.data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        serializer = self.get_serializer(
+            instance,
+            data=request.data,
+        )
+        serializer.is_valid(raise_exception=True)
+        updated_recipe = serializer.save()
+
+        read_serializer = FullRecipeSerializer(
+            updated_recipe, context=self.get_serializer_context()
+        )
+        return Response(read_serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, url_path='get-link')
     def get_link(self, request, pk=None):
-        recipe = get_object_or_404(Recipe, id=pk)
-        short_link = request.build_absolute_uri(recipe.get_short_url())
-        return Response({'short-link': short_link}, status=status.HTTP_200_OK)
+        recipe = get_object_or_404(Recipe, pk=pk)
+        short_link = reverse('short_url', kwargs={'pk': recipe.pk})
+        return Response(
+            {'short-link': request.build_absolute_uri(short_link)},
+            status=status.HTTP_200_OK,
+        )
 
     @action(
         methods=['POST'],
@@ -161,3 +185,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
             {'detail': 'Рецепт был успешно удалён из избранного.'},
             status=status.HTTP_204_NO_CONTENT,
         )
+
+
+@require_GET
+def short_url(request, pk):
+    if not Recipe.objects.filter(pk=pk).exists():
+        raise ValidationError(f'Рецепт {pk} не существует.')
+    return redirect(f'/recipes/{pk}/')

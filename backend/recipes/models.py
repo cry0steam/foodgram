@@ -10,13 +10,16 @@ class Ingredient(models.Model):
 
 
 class Tag(models.Model):
-    slug = models.SlugField(max_length=32)
+    slug = models.SlugField(max_length=32, unique=True)
     name = models.CharField(max_length=32, unique=True)
 
 
 class Recipe(models.Model):
     tags = models.ManyToManyField(Tag)
-    ingredients = models.ManyToManyField(Ingredient)
+    ingredients = models.ManyToManyField(
+        Ingredient,
+        related_name='ingredient_recipes',
+    )
     author = models.ForeignKey(
         User,
         related_name='recipes',
@@ -26,7 +29,7 @@ class Recipe(models.Model):
     text = models.TextField()
     image = models.ImageField(
         upload_to='recipes/images',
-        null=True,
+        null=False,
         default=None,
     )
     cooking_time = models.PositiveIntegerField()
@@ -41,30 +44,39 @@ class Recipe(models.Model):
 class IngredientRecipe(models.Model):
     recipe = models.ForeignKey(
         Recipe,
-        related_name='recipes',
+        related_name='recipe_ingredients',
         on_delete=models.CASCADE,
     )
     ingredient = models.ForeignKey(
         Ingredient,
-        related_name='ingredients',
+        related_name='recipe_ingredients',
         on_delete=models.CASCADE,
     )
     amount = models.PositiveIntegerField()
+
+    class Meta:
+        verbose_name = 'ингредиент рецепта'
+        verbose_name_plural = 'Ингредиенты рецепта'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['recipe', 'ingredient'],
+                name='unique_recipe_ingredient',
+            )
+        ]
 
 
 class ShoppingCart(models.Model):
     user = models.ForeignKey(
         User,
-        related_name='shopping_cart_users',
         on_delete=models.CASCADE,
     )
     recipe = models.ForeignKey(
         Recipe,
-        related_name='shopping_cart_recipes',
         on_delete=models.CASCADE,
     )
 
     class Meta:
+        default_related_name = 'shopping_cart'
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Список покупок'
         ordering = ('user',)
@@ -79,18 +91,17 @@ class ShoppingCart(models.Model):
 class FavoriteRecipe(models.Model):
     user = models.ForeignKey(
         User,
-        related_name='favorite_recipe_users',
         on_delete=models.CASCADE,
     )
     recipe = models.ForeignKey(
         Recipe,
-        related_name='favorite_recipes',
         on_delete=models.CASCADE,
     )
 
     class Meta:
-        verbose_name = 'Список покупок'
-        verbose_name_plural = 'Список покупок'
+        default_related_name = 'favorites'
+        verbose_name = 'Избранный рецепт'
+        verbose_name_plural = 'Избранные рецепты'
         ordering = ('user',)
         constraints = [
             models.UniqueConstraint(

@@ -69,5 +69,4 @@ class Subscription(models.Model):
                 fields=('author', 'subscriber'),
                 name='unique_follow',
             ),
-            # добавить проверку на подписку на самого себя
         )
