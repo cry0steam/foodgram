@@ -10,8 +10,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from users.models import Subscription
-
+from .models import Subscription
 from .pagination import PageLimitPaginator
 from .serializers import (
     AvatarSerializer,

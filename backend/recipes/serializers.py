@@ -159,12 +159,16 @@ class CreateRecipeSerializer(BaseRecipeSerializer):
         # Check for duplicate ingredient ids
         ingredient_ids = [item['id'] for item in value]
         if len(ingredient_ids) != len(set(ingredient_ids)):
-            raise serializers.ValidationError('Ингредиенты не могут повторяться')
+            raise serializers.ValidationError(
+                'Ингредиенты не могут повторяться'
+            )
         return value
 
     def validate_tags(self, value):
         if not value:
-            raise serializers.ValidationError('Список тегов не может быть пустым')
+            raise serializers.ValidationError(
+                'Список тегов не может быть пустым'
+            )
         if len(value) != len(set(value)):
             raise serializers.ValidationError('Теги не могут повторяться')
         return value

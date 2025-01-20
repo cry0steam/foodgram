@@ -4,6 +4,7 @@ src = ["backend"]
 [tool.ruff.format]
 quote-style = "single"
 indent-style = "space"
+max-line-length = 79
 
 [tool.ruff.lint.pycodestyle]
-max-line-length = 88
+max-line-length = 79
