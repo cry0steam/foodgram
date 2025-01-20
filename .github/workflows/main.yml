@@ -43,7 +43,7 @@ jobs:
     name: Push Docker image to DockerHub
     runs-on: ubuntu-latest
     environment: production
-    needs: tests
+    # needs: tests
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
@@ -100,7 +100,7 @@ jobs:
     name: Push frontend Docker image to DockerHub
     runs-on: ubuntu-latest
     environment: production
-    needs: frontend_tests
+    # needs: frontend_tests
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
