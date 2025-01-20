@@ -8,10 +8,18 @@ class Ingredient(models.Model):
     name = models.CharField(max_length=128)
     measurement_unit = models.CharField(max_length=64)
 
+    class Meta:
+        verbose_name = 'Ингредиент'
+        verbose_name_plural = 'Ингредиенты'
+
 
 class Tag(models.Model):
     slug = models.SlugField(max_length=32, unique=True)
     name = models.CharField(max_length=32, unique=True)
+
+    class Meta:
+        verbose_name = 'Тег'
+        verbose_name_plural = 'Теги'
 
 
 class Recipe(models.Model):
