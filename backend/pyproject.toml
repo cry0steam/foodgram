@@ -1,10 +1,17 @@
 [tool.ruff]
 src = ["backend"]
+line-length = 79
 
 [tool.ruff.format]
 quote-style = "single"
 indent-style = "space"
-max-line-length = 79
+
+[tool.ruff.lint.isort]
+known-first-party = [
+    "users",
+    "recipes",
+    "api",
+]
 
 [tool.ruff.lint.pycodestyle]
 max-line-length = 79
