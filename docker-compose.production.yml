@@ -4,7 +4,7 @@ volumes:
   media:
 
 services:
-  db_fg:
+  db:
     image: postgres:13
     env_file: .env
     volumes:
@@ -16,7 +16,7 @@ services:
       - static:/backend_static/
       - media:/app/media/
     depends_on:
-      - db_fg
+      - db
   frontend:
     image: cryosteam/frontend
     env_file: .env
