@@ -223,7 +223,7 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         user = data['user']
-        if user.shopping_cart.filter(recipe=data['recipe']).exists():
+        if user.user_shopping_cart.filter(recipe=data['recipe']).exists():
             raise serializers.ValidationError('Уже в корзине.')
         return data
 
@@ -239,7 +239,7 @@ class FavoriteSerializer(ShoppingCartSerializer):
 
     def validate(self, data):
         user = data['user']
-        if user.favorites.filter(recipe=data['recipe']).exists():
+        if user.user_favorite.filter(recipe=data['recipe']).exists():
             raise serializers.ValidationError('Уже добавлен в избранные.')
         return data
 
