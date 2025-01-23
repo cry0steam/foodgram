@@ -135,13 +135,13 @@ class FullRecipeSerializer(BaseRecipeSerializer):
     def get_is_in_shopping_cart(self, obj):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
-            return obj.shopping_cart.filter(user=request.user).exists()
+            return obj.in_shopping_cart.filter(user=request.user).exists()
         return False
 
     def get_is_favorited(self, obj):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
-            return obj.favorites.filter(user=request.user).exists()
+            return obj.is_user_favorite.filter(user=request.user).exists()
         return False
 
 
