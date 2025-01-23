@@ -141,7 +141,7 @@ class FullRecipeSerializer(BaseRecipeSerializer):
     def get_is_favorited(self, obj):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
-            return obj.is_user_favorite.filter(user=request.user).exists()
+            return obj.in_user_favorite.filter(user=request.user).exists()
         return False
 
 
