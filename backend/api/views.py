@@ -13,14 +13,11 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
 from recipes.models import (
-    FavoriteRecipe,
     Ingredient,
     IngredientRecipe,
     Recipe,
-    ShoppingCart,
     Tag,
 )
-from users.models import Subscription
 
 from .filters import RecipeFilter
 from .pagination import PageLimitPaginator
@@ -108,8 +105,8 @@ class CustomUserViewSet(UserViewSet):
     @subscribe.mapping.delete
     def remove_subscription(self, request, id=None):
         user_to_follow = get_object_or_404(User, id=id)
-        deleted_count, _ = Subscription.objects.filter(
-            subscriber=request.user, author=user_to_follow
+        deleted_count, _ = request.user.subscriber.filter(
+            author=user_to_follow
         ).delete()
         if not deleted_count:
             return Response(
@@ -200,8 +197,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @shopping_cart.mapping.delete
     def remove_shopping_cart(self, request, pk=None):
         recipe = get_object_or_404(Recipe, id=pk)
-        deleted_count, _ = ShoppingCart.objects.filter(
-            user=request.user, recipe=recipe
+        deleted_count, _ = request.user.user_shopping_cart.filter(
+            recipe=recipe
         ).delete()
         if not deleted_count:
             return Response(
@@ -222,7 +219,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def download_shopping_cart(self, request):
         """Список покупок"""
         user = request.user
-        recipes_in_cart = ShoppingCart.objects.filter(user=user).values_list(
+        recipes_in_cart = user.user_shopping_cart.values_list(
             'recipe', flat=True
         )
         ingredients = (
@@ -263,9 +260,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def remove_favorite(self, request, pk=None):
         """Удаление рецепта из избранного"""
         recipe = get_object_or_404(Recipe, id=pk)
-        favorite_item_deleted, _ = FavoriteRecipe.objects.filter(
-            user=request.user, recipe=recipe
+        favorite_item_deleted, _ = request.user.user_favorite.filter(
+            recipe=recipe
         ).delete()
+
         if not favorite_item_deleted:
             return Response(
                 {'detail': 'Рецепт не найден в избранном.'},

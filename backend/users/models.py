@@ -2,25 +2,32 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
 
+from .constants import (
+    EMAIL_LENGTH,
+    FIRSTNAME_LENGTH,
+    LASTNAME_LENGTH,
+    USERNAME_LENGTH,
+)
+
 
 class CustomUser(AbstractUser):
     username = models.CharField(
         'Юзернейм',
-        max_length=150,
+        max_length=USERNAME_LENGTH,
         unique=True,
         validators=[RegexValidator(regex=r'^[\w.@+-]+$')],
     )
     first_name = models.CharField(
         'Имя',
-        max_length=150,
+        max_length=FIRSTNAME_LENGTH,
     )
     last_name = models.CharField(
         'Фамилия',
-        max_length=150,
+        max_length=LASTNAME_LENGTH,
     )
     email = models.EmailField(
         'email',
-        max_length=254,
+        max_length=EMAIL_LENGTH,
         unique=True,
     )
     avatar = models.ImageField(
@@ -64,9 +71,13 @@ class Subscription(models.Model):
     class Meta:
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
+        ordering = ('author',)
         constraints = (
             models.UniqueConstraint(
                 fields=('author', 'subscriber'),
                 name='unique_follow',
             ),
         )
+
+    def __str__(self):
+        return f'{self.author} {self.subscriber}'

@@ -13,6 +13,8 @@ from recipes.models import (
 )
 from users.models import Subscription
 
+from .constants import MAX_AMOUNT, MAX_TIME, MIN_AMOUNT, MIN_TIME
+
 User = get_user_model()
 
 
@@ -86,17 +88,13 @@ class IngredientRecipeSerializer(serializers.ModelSerializer):
 
 class IngrediendRecipeWriteSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
+    amount = serializers.IntegerField(
+        min_value=MIN_AMOUNT, max_value=MAX_AMOUNT
+    )
 
     class Meta:
         model = IngredientRecipe
         fields = ('id', 'amount')
-
-    def validate_amount(self, value):
-        if value < 1:
-            raise serializers.ValidationError(
-                'Ингредиентов не может быть меньше одного'
-            )
-        return value
 
 
 class ShortRecipeSerializer(serializers.ModelSerializer):
@@ -154,6 +152,9 @@ class CreateRecipeSerializer(BaseRecipeSerializer):
     )
     ingredients = IngrediendRecipeWriteSerializer(many=True)
     image = Base64ImageField()
+    cooking_time = serializers.IntegerField(
+        min_value=MIN_TIME, max_value=MAX_TIME
+    )
 
     @staticmethod
     def create_ingredient_in_recipe(instance, ingredients):
@@ -174,13 +175,6 @@ class CreateRecipeSerializer(BaseRecipeSerializer):
                 {'image': 'This field is required.'},
             )
         return attrs
-
-    def validate_cooking_time(self, value):
-        if value < 1:
-            raise serializers.ValidationError(
-                'Время приготовления не может быть меньше единицы'
-            )
-        return value
 
     def validate_ingredients(self, value):
         if not value:
@@ -265,8 +259,8 @@ class SubscriberDetailSerializer(CustomUserSerializer):
         return obj.recipes.count()
 
     def get_recipes(self, obj):
-        queryset = Recipe.objects.filter(author=obj)
-        request = self.context.get('request')
+        queryset = obj.recipes.all()
+        request = self.context['request']
         recipes_limit = request.query_params.get('recipes_limit')
 
         try:
@@ -292,12 +286,11 @@ class SubscriberCreateSerializer(serializers.ModelSerializer):
     def validate(self, data):
         subscriber = data['subscriber']
         author = data['author']
+
         if subscriber == author:
             raise serializers.ValidationError('Нельзя подписаться на себя')
-        if Subscription.objects.filter(
-            subscriber=subscriber,
-            author=author,
-        ).exists():
+
+        if subscriber.subscriber.filter(author=author).exists():
             raise serializers.ValidationError(
                 'Вы уже подписаны на данного пользователя.'
             )
