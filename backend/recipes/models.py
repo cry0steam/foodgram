@@ -133,7 +133,6 @@ class ShoppingCart(models.Model):
     )
 
     class Meta:
-        default_related_name = 'shopping_cart'
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Список покупок'
         ordering = ('user',)
