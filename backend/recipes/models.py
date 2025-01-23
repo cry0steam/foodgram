@@ -47,7 +47,7 @@ class Tag(models.Model):
 
 
 class Recipe(models.Model):
-    tags = models.ManyToManyField('Теги', Tag)
+    tags = models.ManyToManyField(Tag, verbose_name='Теги')
     ingredients = models.ManyToManyField(
         Ingredient,
         verbose_name='Ингредиент',
