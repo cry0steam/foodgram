@@ -3,6 +3,7 @@ from djoser.serializers import UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
+from .constants import MAX_AMOUNT, MAX_TIME, MIN_AMOUNT, MIN_TIME
 from recipes.models import (
     FavoriteRecipe,
     Ingredient,
@@ -12,8 +13,6 @@ from recipes.models import (
     Tag,
 )
 from users.models import Subscription
-
-from .constants import MAX_AMOUNT, MAX_TIME, MIN_AMOUNT, MIN_TIME
 
 User = get_user_model()
 

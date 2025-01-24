@@ -7,7 +7,7 @@ quote-style = "single"
 indent-style = "space"
 
 [tool.ruff.lint.isort]
-known-first-party = [
+known-local-folder= [
     "users",
     "recipes",
     "api",

@@ -12,13 +12,6 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
-from recipes.models import (
-    Ingredient,
-    IngredientRecipe,
-    Recipe,
-    Tag,
-)
-
 from .filters import RecipeFilter
 from .pagination import PageLimitPaginator
 from .permissions import AuthorOrAdminOrReadOnly
@@ -33,6 +26,12 @@ from .serializers import (
     SubscriberCreateSerializer,
     SubscriberDetailSerializer,
     TagSerializer,
+)
+from recipes.models import (
+    Ingredient,
+    IngredientRecipe,
+    Recipe,
+    Tag,
 )
 
 User = get_user_model()
